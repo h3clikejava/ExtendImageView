@@ -1,5 +1,6 @@
 # ExtendImageView
 auto extand ImageView for Android
+
 可以自动扩展的ImageView，主要用于界面跳转的时候图片自动扩展
 支持任意大小任意位置的扩展
 最小SDK为Android 3.1
@@ -7,6 +8,7 @@ auto extand ImageView for Android
  ![image](https://github.com/h3clikejava/ExtendImageView/blob/master/xxx.gif)
  
  Code 引入
+ 
  ``` compile 'h3c.extendimageview:library:0.1' ```
  
  使用示例
