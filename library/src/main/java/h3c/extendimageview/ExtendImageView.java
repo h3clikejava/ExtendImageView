@@ -3,6 +3,7 @@ package h3c.extendimageview;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -32,7 +33,8 @@ public class ExtendImageView extends ImageView {
     }
 
     private void init() {
-        setScaleType(ScaleType.CENTER_CROP);
+        setScaleType(ScaleType.CENTER_INSIDE);
+        setBackgroundColor(Color.TRANSPARENT);
     }
 
     /**
@@ -59,12 +61,17 @@ public class ExtendImageView extends ImageView {
         viewHeight = view.getHeight();
     }
 
+    public void setOriginalViewSize(int width, int height) {
+        viewWidth = width;
+        viewHeight = height;
+    }
+
     private float animValue = 0;// 0 ~ 1
     @Override
     protected void onDraw(Canvas canvas) {
         isPhotoLoaded = true;
         Drawable drawable = getDrawable();
-        if(drawable != null) {
+        if(drawable != null && getDrawable() instanceof BitmapDrawable) {
             Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
             drawBmp(canvas, bitmap, animValue);
         }
@@ -128,7 +135,7 @@ public class ExtendImageView extends ImageView {
     private boolean isPhotoLoaded = false;// 等View绘制了之后才能开始动画
     private Rect mToRect;// 最终的大小
     public void start(Rect toRect) {
-        mToRect = toRect;
+        setToRect(toRect);
         if(!isPhotoLoaded) {
             handler.sendEmptyMessageDelayed(0, 50);
             return;
@@ -139,8 +146,15 @@ public class ExtendImageView extends ImageView {
         handler.sendEmptyMessage(1);
         long singleFrameTime = mDuration / ANIM_FRAME;
         for (int n = 1; n < ANIM_FRAME; n++) {
-            handler.sendEmptyMessageDelayed(1, singleFrameTime * n);
+            Message msg = handler.obtainMessage();
+            msg.what = 1;
+            msg.arg1 = n;
+            handler.sendMessageDelayed(msg, singleFrameTime * n);
         }
+    }
+
+    public void setToRect(Rect toRect) {
+        this.mToRect = toRect;
     }
 
     public void reset() {
@@ -162,8 +176,22 @@ public class ExtendImageView extends ImageView {
                     if(animValue <= 1) {
                         invalidate();
                     }
+
+                    if(msg != null && msg.arg1 == (ANIM_FRAME - 1)) {
+                        if(mListener != null) {
+                            mListener.onExtendImageViewDone();
+                        }
+                    }
                     break;
             }
         }
     };
+
+    private ExtendImageViewListener mListener;
+    public void setExtendImageViewListener(ExtendImageViewListener listener) {
+        this.mListener = listener;
+    }
+    public interface ExtendImageViewListener {
+        void onExtendImageViewDone();
+    }
 }
